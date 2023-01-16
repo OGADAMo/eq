@@ -3,83 +3,169 @@
     <head>
         <title>Equalizer Example</title>
         <script src="https://unpkg.com/wavesurfer.js"></script>
+        <style>
+            #equalizer div {
+                width: 100px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                float: left;
+            }
+
+            input[type="range"] {
+                -webkit-appearance: slider-vertical;
+                width: 100%;
+                height: 100%;
+            }
+    
+        </style>
     </head>
     <body>
         <div id="wavesurfer"></div>
         <button id="play-button">Play</button>
         <button id="pause-button">Pause</button>
+        <button id="bass-btn">bass</button>
+        <button id="preset2-btn">Electronic</button>
+        <button id="preset3-btn">a</button>
         <div id="equalizer">
-            <label for="low-slider">60Hz:</label>
-            <input type="range" min="-12" max="12" value="0" id="low-slider">
-            <label for="low-mid-slider">120Hz</label>
-            <input type="range" min="-12" max="12" value="0" id="low-mid-slider">
-            <label for="mid-slider">910Hz</label>
-            <input type="range" min="-12" max="12" value="0" id="mid-slider">
-            <label for="high-mid-slider">3kHz</label>
-            <input type="range" min="-12" max="12" value="0" id="high-mid-slider">
-            <label for="high-slider">14kHz</label>
-            <input type="range" min="-12" max="12" value="0" id="high-slider">
+            <div>
+                <input type="range" min="-12" max="12" value="0" id="low-slider">
+                <label for="low-slider">60Hz</label>
+            </div>
+            
+            <div>
+                <input type="range" min="-12" max="12" value="0" id="low-mid-slider">
+                <label for="low-mid-slider">120Hz</label>
+            </div>
+            <div>
+                <input type="range" min="-12" max="12" value="0" id="mid-slider">
+                <label for="mid-slider">910Hz</label>  
+            </div>
+            
+            <div>
+                <input type="range" min="-12" max="12" value="0" id="high-mid-slider">
+                <label for="high-mid-slider">3kHz</label>
+            </div>
+
+            <div>
+                <input type="range" min="-12" max="12" value="0" id="high-slider">
+                <label for="high-slider">14kHz</label>
+            
+            </div>
         </div>
         
         <script>
-            var wavesurfer = WaveSurfer.create({
+            // Store preset values
+            let bass = {
+            band1: 5,
+            band2: -5,
+            band3: 0,
+            band4: 5,
+            band5: 10
+            };
+
+            let preset2 = {
+            band1: -12,
+            band2: -12,
+            band3: -12,
+            band4: -12,
+            band5: -12
+            };
+            // Create function to recall preset values
+            let lowSlider = document.getElementById('low-slider');
+            let lowMidSlider = document.getElementById('low-mid-slider');
+            let midSlider = document.getElementById('mid-slider');
+            let highMidSlider = document.getElementById('high-mid-slider');
+            let highSlider = document.getElementById('high-slider');
+
+            let playButton = document.getElementById('play-button');
+            let pauseButton = document.getElementById('pause-button');
+
+            // create 5 band equalizer
+            let equalizer = {};
+            let frequencyRanges = [60, 230, 910, 3000, 14000];
+
+            let wavesurfer = WaveSurfer.create({
                 container: '#wavesurfer',
                 waveColor: 'red',
                 progressColor: 'blue',
                 audioContext: new AudioContext()
             });
+
             wavesurfer.load('1.mp3');
 
-            var playButton = document.getElementById('play-button');
-            var pauseButton = document.getElementById('pause-button');
-
-            playButton.addEventListener('click', function () {
+            playButton.addEventListener('click', () => {
                 wavesurfer.play();
             });
 
-            pauseButton.addEventListener('click', function () {
+            pauseButton.addEventListener('click', ()  => {
                 wavesurfer.pause();
             });
 
-            // create 5 band equalizer
-            var equalizer = {};
-            var frequencyRanges = [60, 230, 910, 3000, 14000];
+            function setPreset(preset) {
+                document.getElementById("low-slider").value = preset.band1;
+                equalizer[0].gain.value = preset.band1;
 
-            for (var i = 0; i < 5; i++) {
+                document.getElementById("low-mid-slider").value = preset.band2;
+                equalizer[1].gain.value = preset.band2;
+
+                document.getElementById("mid-slider").value = preset.band3;
+                equalizer[2].gain.value = preset.band3;
+
+                document.getElementById("high-mid-slider").value = preset.band4;
+                equalizer[3].gain.value = preset.band4;
+
+                document.getElementById("high-slider").value = preset.band5;
+                equalizer[4].gain.value = preset.band5;
+            }
+
+
+            for (let i = 0; i < 5; i++) {
                 equalizer[i] = wavesurfer.backend.ac.createBiquadFilter();
                 equalizer[i].type = 'peaking';
                 equalizer[i].frequency.value = frequencyRanges[i];
-                equalizer[i].Q.value = 0.3;
+                equalizer[i].Q.value = 1;
                 equalizer[i].gain.value = 0;
             }
 
             wavesurfer.backend.setFilter(equalizer[0], equalizer[1], equalizer[2], equalizer[3], equalizer[4]);
 
-            var lowSlider = document.getElementById('low-slider');
-            var lowMidSlider = document.getElementById('low-mid-slider');
-            var midSlider = document.getElementById('mid-slider');
-            var highMidSlider = document.getElementById('high-mid-slider');
-            var highSlider = document.getElementById('high-slider');
+
             // Listen to change events on the sliders
-            lowSlider.addEventListener('input', function () {
+            lowSlider.addEventListener('input', () => {
                 equalizer[0].gain.value = this.value;
             });
 
-            lowMidSlider.addEventListener('input', function () {
+            lowMidSlider.addEventListener('input', () => {
                 equalizer[1].gain.value = this.value;
             });
 
-            midSlider.addEventListener('input', function () {
+            midSlider.addEventListener('input', () => {
                 equalizer[2].gain.value = this.value;
             });
 
-            highMidSlider.addEventListener('input', function () {
+            highMidSlider.addEventListener('input', () => {
                 equalizer[3].gain.value = this.value;
             });
 
-            highSlider.addEventListener('input', function () {
+            highSlider.addEventListener('input', () => {
                 equalizer[4].gain.value = this.value;
             });
+            
+
+            // Create buttons to select presets
+            let bassBtn = document.getElementById("bass-btn");
+            bassBtn.addEventListener("click", function() {
+                setPreset(bass);
+            });
+
+            let preset2Btn = document.getElementById("preset2-btn");
+            preset2Btn.addEventListener("click", function() {
+                setPreset(preset2);
+            });
+
+
+
         </script>
     </body>
 </html>
