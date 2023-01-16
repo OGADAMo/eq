@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Equalizer Example</title>
+        <script src="https://unpkg.com/wavesurfer.js"></script>
+    </head>
+    <body>
+        <div id="wavesurfer"></div>
+        <button id="play-button">Play</button>
+        <button id="pause-button">Pause</button>
+        <div id="equalizer">
+            <label for="low-slider">60Hz:</label>
+            <input type="range" min="-12" max="12" value="0" id="low-slider">
+            <label for="low-mid-slider">120Hz</label>
+            <input type="range" min="-12" max="12" value="0" id="low-mid-slider">
+            <label for="mid-slider">910Hz</label>
+            <input type="range" min="-12" max="12" value="0" id="mid-slider">
+            <label for="high-mid-slider">3kHz</label>
+            <input type="range" min="-12" max="12" value="0" id="high-mid-slider">
+            <label for="high-slider">14kHz</label>
+            <input type="range" min="-12" max="12" value="0" id="high-slider">
+        </div>
+        
+        <script>
+            var wavesurfer = WaveSurfer.create({
+                container: '#wavesurfer',
+                waveColor: 'red',
+                progressColor: 'blue',
+                audioContext: new AudioContext()
+            });
+            wavesurfer.load('1.mp3');
+
+            var playButton = document.getElementById('play-button');
+            var pauseButton = document.getElementById('pause-button');
+
+            playButton.addEventListener('click', function () {
+                wavesurfer.play();
+            });
+
+            pauseButton.addEventListener('click', function () {
+                wavesurfer.pause();
+            });
+
+            // create 5 band equalizer
+            var equalizer = {};
+            var frequencyRanges = [60, 230, 910, 3000, 14000];
+
+            for (var i = 0; i < 5; i++) {
+                equalizer[i] = wavesurfer.backend.ac.createBiquadFilter();
+                equalizer[i].type = 'peaking';
+                equalizer[i].frequency.value = frequencyRanges[i];
+                equalizer[i].Q.value = 0.3;
+                equalizer[i].gain.value = 0;
+            }
+
+            wavesurfer.backend.setFilter(equalizer[0], equalizer[1], equalizer[2], equalizer[3], equalizer[4]);
+
+            var lowSlider = document.getElementById('low-slider');
+            var lowMidSlider = document.getElementById('low-mid-slider');
+            var midSlider = document.getElementById('mid-slider');
+            var highMidSlider = document.getElementById('high-mid-slider');
+            var highSlider = document.getElementById('high-slider');
+            // Listen to change events on the sliders
+            lowSlider.addEventListener('input', function () {
+                equalizer[0].gain.value = this.value;
+            });
+
+            lowMidSlider.addEventListener('input', function () {
+                equalizer[1].gain.value = this.value;
+            });
+
+            midSlider.addEventListener('input', function () {
+                equalizer[2].gain.value = this.value;
+            });
+
+            highMidSlider.addEventListener('input', function () {
+                equalizer[3].gain.value = this.value;
+            });
+
+            highSlider.addEventListener('input', function () {
+                equalizer[4].gain.value = this.value;
+            });
+        </script>
+    </body>
+</html>
+
